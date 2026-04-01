@@ -7,7 +7,7 @@ IRSensorManager::IRSensorManager(const int pins[], int count)
     for (int i = 0; i < numSensors; i++)
     {
         sensorPins[i] = pins[i];
-        lastReadState[i] = SENSOR_CLEAR; // Mặc định trạng thái không phát hiện vật
+        lastReadState[i] = SENSOR_CLEAR;
         validatedState[i] = SENSOR_CLEAR;
         lastDebounceTime[i] = 0;
     }
@@ -56,13 +56,13 @@ void IRSensorManager::update()
 
 void IRSensorManager::processCommand(String command)
 {
-    command.trim();        // Xóa khoảng trắng thừa hoặc ký tự \n \r
-    command.toUpperCase(); // Chuẩn hóa thành chữ hoa
+    // Format lệnh mong đợi: "S {sensor_number}" (VD: "S 1" để yêu cầu trạng thái cảm biến 1)
+    command.trim();
+    command.toUpperCase();
 
-    if (command.startsWith("S"))
+    if (command.startsWith("S ") && command.length() > 2)
     {
-        // Cắt bỏ chữ 'S', lấy phần số
-        String numStr = command.substring(1);
+        String numStr = command.substring(2); // Cắt bỏ "S " và lấy phần số
         int sensorNumber = numStr.toInt();
 
         int index = sensorNumber - 1; // Người dùng nhập S1 -> index = 0
@@ -73,7 +73,8 @@ void IRSensorManager::processCommand(String command)
         }
         else
         {
-            Serial.println("Loi: Cam bien khong ton tai!");
+            // Phản hồi ERROR
+            Serial.println("S E");
         }
     }
 }
@@ -84,8 +85,9 @@ void IRSensorManager::sendSensorState(int index)
     // SENSOR_CLEAR = trạng thái bình thường, SENSOR_DETECTED = phát hiện vật (hoặc sự kiện)
     String stateStr = (validatedState[index] == SENSOR_DETECTED) ? "1" : "0";
 
-    Serial.print("S");
-    Serial.print(index + 1); // Trả về dạng S1, S2...
-    Serial.print(":");
+    // Format: "S{sensor_number} {state}\n" (VD: "S1 1\n" nghĩa là cảm biến 1 phát hiện vật)
+    Serial.print("S ");
+    Serial.print(index + 1);
+    Serial.print(" ");
     Serial.println(stateStr);
 }
