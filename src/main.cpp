@@ -12,8 +12,16 @@ const int irPinsSL[] = {14, 15, 16, 17, 18, 19};
 const int NUM_SL = sizeof(irPinsSL) / sizeof(irPinsSL[0]);
 
 // Khởi tạo 3 đối tượng quản lý cảm biến
+// SC: Pallet có xe không
 IRSensorManager SCar("SC", irPinsSC, NUM_SC);
-IRSensorManager SMove("SM", irPinsSM, NUM_SM);
+
+// SH: Pallet có ở home không
+IRSensorManager SMoveHome("SH", irPinsSM, NUM_SM);
+
+// SE: Pallet có ở end không
+IRSensorManager SMoveEnd("SE", irPinsSM, NUM_SM);
+
+// SL: Có chạm limit không
 IRSensorManager SLimit("SL", irPinsSL, NUM_SL);
 
 void setup()
@@ -22,7 +30,8 @@ void setup()
 
     // Khởi tạo các chân INPUT cho cả 3 cụm
     SCar.begin();
-    SMove.begin();
+    SMoveHome.begin();
+    SMoveEnd.begin();
     SLimit.begin();
 
     Serial.println("He thong SS san sang!");
@@ -32,7 +41,8 @@ void loop()
 {
     // 1. Quét cảm biến liên tục cho 3 cụm
     SCar.update();
-    SMove.update();
+    SMoveHome.update();
+    SMoveEnd.update();
     SLimit.update();
 
     // 2. Nhận lệnh UART (VD: gõ "SC", "SM", "SL" từ Serial Monitor)
@@ -41,7 +51,8 @@ void loop()
         String cmd = Serial.readStringUntil('\n');
 
         SCar.processCommand(cmd);
-        SMove.processCommand(cmd);
+        SMoveHome.processCommand(cmd);
+        SMoveEnd.processCommand(cmd);
         SLimit.processCommand(cmd);
     }
 }

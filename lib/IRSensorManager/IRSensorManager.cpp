@@ -87,7 +87,7 @@ void IRSensorManager::sendSensorState(int index)
     // SENSOR_CLEAR = trạng thái bình thường, SENSOR_DETECTED = phát hiện vật (hoặc sự kiện)
     String stateStr = (validatedState[index] == SENSOR_DETECTED) ? "1" : "0";
 
-    // Format cập nhật 1 cảm biến: <Mã> <Index> <Giá trị> (VD: "SC 0 1")
+    // Format cập nhật 1 cảm biến: <Mã> <Index> <Giá trị> (VD: "SC 1 1")
     Serial.print(instanceCode);
     Serial.print(" ");
     Serial.print(index + 1);
