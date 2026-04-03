@@ -1,7 +1,8 @@
 #include "IRSensorManager.h"
 
-IRSensorManager::IRSensorManager(const int pins[], int count)
+IRSensorManager::IRSensorManager(String code, const int pins[], int count)
 {
+    instanceCode = code;
     numSensors = (count <= MAX_SENSORS) ? count : MAX_SENSORS;
 
     for (int i = 0; i < numSensors; i++)
@@ -45,7 +46,7 @@ void IRSensorManager::update()
             {
                 validatedState[i] = currentState;
 
-                // Trạng thái BẤT KỲ thay đổi -> Tự động gửi qua UART
+                // Trạng thái BẤT KỲ thay đổi -> Tự động gửi qua UART theo format: <Mã> <Index> <Giá trị>
                 sendSensorState(i);
             }
         }
@@ -56,27 +57,28 @@ void IRSensorManager::update()
 
 void IRSensorManager::processCommand(String command)
 {
-    // Format lệnh mong đợi: "S {sensor_number}" (VD: "S 1" để yêu cầu trạng thái cảm biến 1)
     command.trim();
     command.toUpperCase();
 
-    if (command.startsWith("S ") && command.length() > 2)
+    // Nếu lệnh trùng khớp với mã của instance này (VD: "SC"), in toàn bộ chuỗi bit
+    if (command.equals(instanceCode))
     {
-        String numStr = command.substring(2); // Cắt bỏ "S " và lấy phần số
-        int sensorNumber = numStr.toInt();
-
-        int index = sensorNumber - 1; // Người dùng nhập S1 -> index = 0
-
-        if (index >= 0 && index < numSensors)
-        {
-            sendSensorState(index);
-        }
-        else
-        {
-            // Phản hồi ERROR
-            Serial.println("S E");
-        }
+        sendAllStates();
     }
+}
+
+void IRSensorManager::sendAllStates()
+{
+    String stateString = "";
+    for (int i = 0; i < numSensors; i++)
+    {
+        stateString += (validatedState[i] == SENSOR_DETECTED) ? "1" : "0";
+    }
+
+    // Gửi gộp lại trên một dòng. VD: "SC 10110011"
+    Serial.print(instanceCode);
+    Serial.print(" ");
+    Serial.println(stateString);
 }
 
 void IRSensorManager::sendSensorState(int index)
@@ -85,8 +87,9 @@ void IRSensorManager::sendSensorState(int index)
     // SENSOR_CLEAR = trạng thái bình thường, SENSOR_DETECTED = phát hiện vật (hoặc sự kiện)
     String stateStr = (validatedState[index] == SENSOR_DETECTED) ? "1" : "0";
 
-    // Format: "S{sensor_number} {state}\n" (VD: "S1 1\n" nghĩa là cảm biến 1 phát hiện vật)
-    Serial.print("S ");
+    // Format cập nhật 1 cảm biến: <Mã> <Index> <Giá trị> (VD: "SC 0 1")
+    Serial.print(instanceCode);
+    Serial.print(" ");
     Serial.print(index + 1);
     Serial.print(" ");
     Serial.println(stateStr);

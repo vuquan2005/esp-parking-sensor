@@ -20,6 +20,7 @@ class IRSensorManager
 private:
     static const int MAX_SENSORS = 16; // Điều chỉnh tùy nhu cầu thực tế
 
+    String instanceCode;                         // Mã định danh instance (VD: "SC", "SM", "SL")
     int sensorPins[MAX_SENSORS];                 // Mảng các chân cảm biến
     int numSensors;                              // Số lượng cảm biến
     bool lastReadState[MAX_SENSORS];             // Trạng thái đọc thô ở chu kỳ trước
@@ -29,8 +30,8 @@ private:
     void sendSensorState(int index);
 
 public:
-    // Khởi tạo class truyền vào mảng chân và số lượng
-    IRSensorManager(const int pins[], int count);
+    // Khởi tạo class truyền vào mã instance, mảng chân và số lượng
+    IRSensorManager(String code, const int pins[], int count);
 
     // Gọi trong setup()
     void begin();
@@ -38,7 +39,10 @@ public:
     // Gọi trong loop()
     void update();
 
-    // Xử lý chuỗi lệnh từ UART (VD: "S1", "S2")
+    // Gọi để gửi toàn bộ trạng thái cảm biến 
+    void sendAllStates();
+
+    // Xử lý chuỗi lệnh từ UART (VD: "SC", "SM", "SL")
     void processCommand(String command);
 };
 
