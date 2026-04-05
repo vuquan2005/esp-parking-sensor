@@ -4,7 +4,7 @@
 #include <Arduino.h>
 
 // Bạn có thể tùy chỉnh thời gian debounce (ms)
-#define DEBOUNCE_DELAY 50
+#define DEBOUNCE_DELAY 20
 
 // Mặc định cho cảm biến IR obstacle: HIGH = SENSOR_CLEAR, LOW = SENSOR_DETECTED
 #ifndef SENSOR_CLEAR
@@ -15,9 +15,8 @@
 #define SENSOR_DETECTED LOW
 #endif
 
-class IRSensorManager
-{
-private:
+class IRSensorManager {
+  private:
     static const int MAX_SENSORS = 16; // Điều chỉnh tùy nhu cầu thực tế
 
     String instanceCode;                         // Mã định danh instance (VD: "SC", "SM", "SL")
@@ -29,7 +28,7 @@ private:
 
     void sendSensorState(int index);
 
-public:
+  public:
     // Khởi tạo class truyền vào mã instance, mảng chân và số lượng
     IRSensorManager(String code, const int pins[], int count);
 
@@ -39,7 +38,24 @@ public:
     // Gọi trong loop()
     void update();
 
-    // Gọi để gửi toàn bộ trạng thái cảm biến 
+    // Trả về chuỗi trạng thái của tất cả cảm biến (VD: "10110011") mà không gửi qua UART
+    String getAllStates();
+
+    // Lấy trạng thái của một cảm biến cụ thể (trả về true nếu phát hiện - SENSOR_DETECTED)
+    bool getSensorState(int index);
+
+    // Lấy trạng thái "thô" (chưa qua debounce) của một cảm biến cụ thể
+    bool getRawSensorState(int index);
+
+    // Truy cập trực tiếp vào mảng dữ liệu gốc
+    const bool *getValidatedStatesArray() const {
+        return validatedState;
+    }
+    const bool *getRawStatesArray() const {
+        return lastReadState;
+    }
+
+    // Gọi để gửi toàn bộ trạng thái cảm biến
     void sendAllStates();
 
     // Xử lý chuỗi lệnh từ UART (VD: "SC", "SM", "SL")
